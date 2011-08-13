@@ -48,9 +48,9 @@ class FileUploadBehavior extends ModelBehavior {
       $options = array();
     }
     $this->options[$Model->alias] = array_merge($FileUploadSettings->defaults, $options);
-        
+
     $uploader_settings = $this->options[$Model->alias];
-    $uploader_settings['uploadDir'] = $this->options[$Model->alias]['forceWebroot'] ? WWW_ROOT . $uploader_settings['uploadDir'] : $uploader_settings['uploadDir']; 
+
     $uploader_settings['fileModel'] = $Model->alias;
     $this->Uploader[$Model->alias] = new Uploader($uploader_settings);
   }
@@ -88,6 +88,16 @@ class FileUploadBehavior extends ModelBehavior {
     */
   function beforeValidate(&$Model){
     if(isset($Model->data[$Model->alias][$this->options[$Model->alias]['fileVar']])){
+		// Leo
+	    if(!$this->options[$Model->alias]['uploadDirFunc']){
+	    	$this->options[$Model->alias]['uploadDir'] = $this->options[$Model->alias]['forceWebroot'] ? WWW_ROOT . $this->options[$Model->alias]['uploadDir'] : $this->options[$Model->alias]['uploadDir'];
+	    }
+	    else{
+	    	$this->options[$Model->alias]['uploadDir'] = $Model->{$this->options[$Model->alias]['uploadDirFunc']}();
+	    }
+	    $this->Uploader[$Model->alias]->options['uploadDir'] = $this->options[$Model->alias]['uploadDir'];
+    	// Leo
+    	
       $file = $Model->data[$Model->alias][$this->options[$Model->alias]['fileVar']];
       $this->Uploader[$Model->alias]->file = $file;
       if($this->Uploader[$Model->alias]->hasUpload()){
